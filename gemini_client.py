@@ -19,7 +19,7 @@ class GeminiClient:
             genai.configure(api_key=api_key)
             
         # Using gemini-1.5-flash per user request
-        self.model = genai.GenerativeModel('gemini-1.5-flash-001')
+        self.model = genai.GenerativeModel('gemini-2.5-flash')
 
     def generate_content(self, prompt, context_vars=None):
         """
