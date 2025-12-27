@@ -1,4 +1,4 @@
 flask
 flask-session
 python-dotenv
-google-generativeai
+groq
