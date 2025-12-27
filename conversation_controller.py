@@ -1,5 +1,5 @@
 from persona_engine import PersonaEngine
-from gemini_client import GeminiClient
+from groq_client import GroqClient
 from prompts import QUESTION_GENERATION_PROMPT, INTERVIEWER_PERSONA_PROMPT, RESPONSE_ANALYSIS_PROMPT
 
 class ConversationController:
@@ -11,7 +11,7 @@ class ConversationController:
         self.state = "IDLE"  # IDLE, PROFILING, ACTIVE, ENDED
         self.history = []
         self.persona_engine = PersonaEngine(state_dict=persona_engine_state)
-        self.gemini_client = GeminiClient()
+        self.llm_client = GroqClient()
         self.question_count = 0 
         
         # State tracking for adaptive logic
@@ -91,7 +91,7 @@ class ConversationController:
             }
             
             # Generate first question
-            first_interview_question = self.gemini_client.generate_content(QUESTION_GENERATION_PROMPT, context)
+            first_interview_question = self.llm_client.generate_content(QUESTION_GENERATION_PROMPT, context)
             
             transition_msg = (
                 f"Thank you, {candidate_name}. Based on your profile, I will be conducting a {persona_data['title']} interview.\n"
@@ -107,7 +107,7 @@ class ConversationController:
             return next_q
 
     def _handle_active_interview(self, user_input):
-        """Generates the next question using Gemini after analyzing the response."""
+        """Generates the next question using the LLM after analyzing the response."""
         
         persona_data = self.persona_engine.profile['assigned_persona']
         last_system_message = self.history[-2]['content'] if len(self.history) >= 2 else "Start of Interview"
@@ -121,7 +121,7 @@ class ConversationController:
         }
         
         # Analyze the user's response
-        analysis_result = self.gemini_client.generate_json(RESPONSE_ANALYSIS_PROMPT, analysis_context)
+        analysis_result = self.llm_client.generate_json(RESPONSE_ANALYSIS_PROMPT, analysis_context)
         
         adaptive_instruction = "Continue with the interview flow."
         should_advance_topic = True
@@ -182,7 +182,7 @@ class ConversationController:
             "adaptive_instruction": adaptive_instruction
         }
         
-        next_question = self.gemini_client.generate_content(QUESTION_GENERATION_PROMPT, context)
+        next_question = self.llm_client.generate_content(QUESTION_GENERATION_PROMPT, context)
         
         self.history.append({"role": "system", "content": next_question})
         return next_question
@@ -214,7 +214,7 @@ class ConversationController:
             }
             
             from prompts import RESULT_GENERATION_PROMPT
-            report_json = self.gemini_client.generate_json(RESULT_GENERATION_PROMPT, context)
+            report_json = self.llm_client.generate_json(RESULT_GENERATION_PROMPT, context)
             
             self.report = report_json # Store report in controller state
             
